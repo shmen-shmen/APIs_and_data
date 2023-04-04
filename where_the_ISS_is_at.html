@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+
+  <style>
+    body {
+      min-width: 600px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    #ISS_map {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+    }
+  </style>
+
+  <title>Where the ISS is at?</title>
+</head>
+
+<body>
+  <h1>Where VLADLEN_TATARSKI is at?</h1>
+  <div id="where">
+    <p>latitude is: <span id="lat"></span></p>
+    <p>longitude is: <span id="long"></span></p>
+  </div>
+  <div id="ISS_map"></div>
+
+
+  <script>
+    // MAP RESOURCES
+    const tileURL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    const attributionURL = 'http://www.openstreetmap.org/copyright'
+
+    // MAP SETUP
+    const map = L.map('ISS_map');
+    L.tileLayer(`${tileURL}`, {
+      maxZoom: 19,
+      attribution: `&copy; <a href="${attributionURL}">OpenStreetMap</a>`
+    }).addTo(map);
+
+    map.setView([0, 0], 7)
+
+    // ICON SETUP
+    const tatari = L.icon({
+      iconUrl: 'al-tatari.jpg',
+
+      iconSize: [50, 50], // size of the icon
+      shadowSize: [50, 64], // size of the shadow
+      iconAnchor: [25, 25], // point of the icon which will correspond to marker's location
+    });
+    const marker = L.marker([0, 0], { icon: tatari })
+
+    // FUNCTION TO FOLLOW ISS
+    const render_lat_long = async () => {
+      const { latitude, longitude } = await retrieve_lat_long()
+      map.panTo([latitude, longitude])
+      marker.setLatLng([latitude, longitude]).addTo(map)
+
+      document.getElementById('lat').textContent = latitude
+      document.getElementById('long').textContent = longitude
+    }
+
+    // FUNCTION TO RETRIEVE ISS COORDINATES
+    const ISS_API_URL = "https://api.wheretheiss.at/v1/satellites/25544"
+
+    const retrieve_lat_long = async () => {
+      const response = await fetch(ISS_API_URL)
+      const data = await response.json()
+      const { latitude, longitude } = await data
+
+      return { latitude, longitude }
+    }
+
+    // MAP AND ICON UPDATE
+    setInterval(render_lat_long, 1000)
+
+  </script>
+</body>
+
+</html>
